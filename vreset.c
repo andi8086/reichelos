@@ -10,6 +10,7 @@
  */
 #include "io.h"
 #include "vga.h"
+#include "vga_fonts.h"
 
 unsigned char CRTC[24] = {
     0x5F, 0x4F, 0x50, 0x82, 0x55, 0x81, 0xBF, 0x1F, 
@@ -21,8 +22,6 @@ unsigned char AC[21] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x14, 0x07, 
     0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 
     0x0C, 0x00, 0x0F, 0x08, 0x00};
-
-#include "iso_font.h"
 
 static const unsigned char color_LUT[] =
    {
@@ -134,9 +133,9 @@ void vga_init(unsigned char *ISA_mem)
   outw(0x3CE, 0x0402);    /* read plane 2 */
   outw(0x3CE, 0x0500);    /* write mode 0, read mode 0 */
   outw(0x3CE, 0x0600);    /* set graphics */
-  for (i = 0;  i < sizeof(font);  i += 16) {
+  for (i = 0;  i < sizeof(font_8x16);  i += 16) {
     for (j = 0;  j < 16;  j++) {
-      font_page[(2*i)+j] = font[i+j];
+      font_page[(2*i)+j] = font_8x16[i+j];
     }
   }
 

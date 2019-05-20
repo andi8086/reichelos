@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "timer.h"
 #include "io.h"
+#include "8042.h"
 
 #pragma(__align(32))
 struct __attribute__((packed)) IDT idt[48];
@@ -239,7 +240,7 @@ void ISRCODE isr32(struct interrupt_frame* f) // IRQ0
 
 void ISRCODE isr33(struct interrupt_frame* f) // IRQ1
 {
-	asm volatile("nop");
+	kbd_buff_push(keyboard_read());
 	outb(0x20, 0x20);
 }
 

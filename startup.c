@@ -10,6 +10,7 @@ void startup(uint32_t magic, uint32_t addr);
 #include "interrupt.h"
 #include "timer.h"
 #include "multiboot.h"
+#include "8042.h"
 
 void clrscr_pre(void);
 void print_pre(char *dest, char *src);
@@ -52,7 +53,7 @@ void startup(uint32_t magic, uint32_t addr)
 	}
 
 	if (CHECK_FLAG (mbi->flags, 6))
-         {
+        {
            multiboot_memory_map_t *mmap;
 		printf("mmap_addr = 0x%x, length = 0x%x\n",
 			mbi->mmap_addr, mbi->mmap_length);
@@ -66,7 +67,9 @@ void startup(uint32_t magic, uint32_t addr)
 				mmap->size, mmap->addr0 & 0xFFFFFFFF,
 				mmap->len0 & 0xFFFFFFFF, mmap->type);
 		}
-         }
+        }
+
+	init_8042();
 
 	printf("\n%s\n", OS_VERSION);
 
@@ -74,7 +77,19 @@ void startup(uint32_t magic, uint32_t addr)
 	while(1) {
 		*(char *)(VIDEO + 158) = ticksymb[(syscounter >> 6) % 4];
 		*(char *)(VIDEO + 159) = 0x07;
-		asm volatile("nop");
+		char c = (char)kbd_buff_pop();
+		if (c) {
+			printf("%c", c);
+		}
+		*(char *)(VIDEO + 140) = keyboard_status & KBD_LSHIFT ? 'S' : ' ';
+		*(char *)(VIDEO + 142) = keyboard_status & KBD_LCTRL ? 'C' : ' ';
+		*(char *)(VIDEO + 144) = keyboard_status & KBD_LGUI ? 'W' : ' ';
+		*(char *)(VIDEO + 146) = keyboard_status & KBD_LALT ? 'A' : ' ';
+		*(char *)(VIDEO + 148) = keyboard_status & KBD_RALT ? 'A' : ' ';
+		*(char *)(VIDEO + 150) = keyboard_status & KBD_APPS ? 'M' : ' ';
+		*(char *)(VIDEO + 152) = keyboard_status & KBD_RGUI ? 'W' : ' ';
+		*(char *)(VIDEO + 154) = keyboard_status & KBD_RCTRL ? 'C' : ' ';
+		*(char *)(VIDEO + 156) = keyboard_status & KBD_RSHIFT ? 'S' : ' ';
 	}
 }
 
