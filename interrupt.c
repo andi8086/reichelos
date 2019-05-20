@@ -275,7 +275,10 @@ void ISRCODE isr38(struct interrupt_frame* f) // IRQ6
 
 void ISRCODE isr39(struct interrupt_frame* f) // IRQ7
 {
-	asm volatile("nop");
+	if (is_spurious(7)) {
+		sys_spurious_irqs7++;
+		return;
+	}
 	outb(0x20, 0x20);
 }
 
@@ -330,7 +333,10 @@ void ISRCODE isr46(struct interrupt_frame* f) // IRQ14
 
 void ISRCODE isr47(struct interrupt_frame* f) // IRQ15
 {
-	asm volatile("nop");
 	outb(0x20, 0x20);
+	if (is_spurious(15)) {
+		sys_spurious_irqs15++;
+		return;
+	}
 	outb(0xA0, 0x20);
 }

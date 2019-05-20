@@ -13,7 +13,9 @@ void print_pre(char *dest, char *src);
 
 const char *init_kernel_msg = "Initializing Kernel...";
 
-void dummy2(void) {}
+void dummy2(void) {
+	printf("hallo %s", "blabla");
+}
 
 const char *ticksymb = "-/|\\";
 
@@ -25,7 +27,7 @@ void startup(uint32_t magic, uint32_t addr)
 	mbi = (multiboot_info_t *)addr;
 
 	clrscr();
-	
+
 	printf(init_kernel_msg);
 
 	if (magic == 0x2BADB002)
@@ -39,35 +41,25 @@ void startup(uint32_t magic, uint32_t addr)
 
 	if (mbi->flags & 2)
 	{
-  		itoa(buffer, 'u', mbi->mem_lower);
-		printf("mem_lower = ");
-		printf(buffer); printf("KB, ");
-		itoa(buffer, 'u', mbi->mem_upper);
-    		printf("mem_upper = ");
-		printf(buffer); printf("KB\n");
+
+		printf("mem_lower = %dKB, mem_upper = %dKB\n", mbi->mem_lower,\
+			 mbi->mem_upper);
 	}
 
 	if (CHECK_FLAG (mbi->flags, 6))
          {
            multiboot_memory_map_t *mmap;
-		itoa(buffer, 'x', mbi->mmap_addr);
-		printf("mmap_addr = 0x"); printf(buffer);
-		itoa(buffer, 'x', mbi->mmap_length);   
-		printf(", mmap_length = 0x"); printf(buffer); printf("\n");
-           
+		printf("mmap_addr = 0x%x, length = 0x%x\n",
+			mbi->mmap_addr, mbi->mmap_length);
+
              for (mmap = (multiboot_memory_map_t *) mbi->mmap_addr;
                 (uint32_t) mmap < mbi->mmap_addr + mbi->mmap_length;
                 mmap = (multiboot_memory_map_t *) ((uint32_t) mmap
                                          + mmap->size + sizeof (mmap->size)))
             	{
-		itoa(buffer, 'x', mmap->size);
-		printf(" size = 0x"); printf(buffer);
-		itoa(buffer, 'x', mmap->addr0 & 0xFFFFFFFF);
-		printf(", base = 0x"); printf(buffer);
-		itoa(buffer, 'x', mmap->len0 & 0xFFFFFFFF);
-		printf(", len = 0x"); printf(buffer);
-		itoa(buffer, 'x', mmap->type);
-		printf(", type = 0x"); printf(buffer); printf("\n");
+			printf(" size = 0x%x, base = 0x%x, len = 0x%x, type = 0%u\n",
+				mmap->size, mmap->addr0 & 0xFFFFFFFF,
+				mmap->len0 & 0xFFFFFFFF, mmap->type);
 		}
          }
 

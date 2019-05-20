@@ -1,23 +1,32 @@
 all: init.bin init.elf
 
-CFLAGS := -Wno-builtin-declaration-mismatch -fverbose-asm -masm=intel
+CC ?= gcc
 
-OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o printf.o stack_dummy.o
+CFLAGS := -Wno-builtin-declaration-mismatch -fverbose-asm -masm=intel \
+	  -fno-stack-protector -fno-stack-check
+
+OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o printf.o stack_dummy.o \
+	paging.o
 
 %.o: %.S
-	as --32 $^ -o $@
+	@echo $@
+	@as --32 $^ -o $@
 
 interrupt.o: interrupt.c
-	gcc -Wa,-adhln=${^:.c=.s} $(CFLAGS) -mno-red-zone -c -O0 -m32 -fno-pie -mno-80387 $^ -o $@
+	@echo $@
+	@$(CC) -Wa,-adhln=${^:.c=.s} $(CFLAGS) -mno-red-zone -c -O0 -m32 -fno-pie -mno-80387 $^ -o $@
 
 %.o: %.c
-	gcc -Wa,-adhln=${^:.c=.s} $(CFLAGS) -c -O0 -m32 -fno-pie $^ -o $@
+	@echo $@
+	@$(CC) -Wa,-adhln=${^:.c=.s} $(CFLAGS) -c -O0 -m32 -fno-pie $^ -o $@
 
 init.bin: $(OBJs)
-	ld -m elf_i386 -T init.ld $^ -o $@ --oformat=binary
-	
+	@echo $@
+	@ld -m elf_i386 -T init.ld $^ -o $@ --oformat=binary
+
 init.elf: $(OBJs)
-	ld -m elf_i386 -T init.ld $^ -o $@
+	@echo $@
+	@ld -m elf_i386 -T init.ld $^ -o $@
 
 test: init.elf
 	./start.sh

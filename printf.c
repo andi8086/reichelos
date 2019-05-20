@@ -1,4 +1,6 @@
 #include "printf.h"
+#include "stdarg.h"
+#include <stdint.h>
 
 static int xpos;
 static int ypos;
@@ -24,13 +26,13 @@ void itoa (char *buf, int base, int d)
        char *p1, *p2;
        unsigned long ud = d;
        int divisor = 10;
-     
+
        /* If %d is specified and D is minus, put `-' in the head. */
-       if (base == 'd' && d < 0) {
+       if (base == 10 && d < 0) {
            *p++ = '-';
            buf++;
            ud = -d;
-       } else if (base == 'x')
+       } else if (base == 16)
                divisor = 16;
      
        /* Divide UD by DIVISOR until UD == 0. */
@@ -67,74 +69,69 @@ static void putchar (int c)
              ypos = 0;
            return;
          }
-     
+
        *(video + (xpos + ypos * COLUMNS) * 2) = c & 0xFF;
        *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
-     
+
        xpos++;
        if (xpos >= COLUMNS)
          goto newline;
 }
 
+static void puts(char *s)
+{
+	while (*s) putchar(*s++);
+}
+
+char *convert(unsigned int num, int base)
+{
+	static char buffer[50];
+	itoa(buffer, base, num);
+	return buffer;
+}
+
 void printf (const char *format, ...)
 {
-       char **arg = (char **) &format;
-       int c;
-       char buf[20];
-     
-       arg++;
-     
-       while ((c = *format++) != 0)
-         {
-           if (c != '%')
-             putchar (c);
-           else
-             {
-               char *p, *p2;
-               int pad0 = 0, pad = 0;
-     
-               c = *format++;
-               if (c == '0')
-                 {
-                   pad0 = 1;
-                   c = *format++;
-                 }
-     
-               if (c >= '0' && c <= '9')
-                 {
-                   pad = c - '0';
-                   c = *format++;
-                 }
-     
-               switch (c)
-                 {
-                 case 'd':
-                 case 'u':
-                 case 'x':
-                   itoa (buf, c, *((int *) arg++));
-                   p = buf;
-                   goto string;
-                   break;
-     
-                 case 's':
-                   p = *arg++;
-                   if (! p)
-                     p = "(null)";
-     
-                 string:
-                   for (p2 = p; *p2; p2++);
-                   for (; p2 < p + pad; p2++)
-                     putchar (pad0 ? '0' : ' ');
-                   while (*p)
-                     putchar (*p++);
-                   break;
-     
-                 default:
-                   putchar (*((int *) arg++));
-                   break;
-                 }
-            }
-      }
+	va_list arg;
+	unsigned int i;
+	char *s;
+
+	va_start(arg, format);
+
+	while(*format) {
+		while (*format != '%' && *format != 0)
+		{
+			putchar(*format);
+			format++;
+		}
+		if (*format == 0) break;
+		format++;
+		switch(*format++) {
+		case 'c': i = va_arg(arg, int);
+			putchar(i);
+			break;
+		case 'u': i = va_arg(arg, unsigned int);
+			goto print_decimal;
+		case 'd': i = va_arg(arg, int);
+			if (i < 0) {
+				i = -i;
+				putchar('-');
+			}
+		print_decimal:
+			puts(convert(i, 10));
+			break;
+		case 'o': i = va_arg(arg, unsigned int);
+			puts(convert(i,8));
+			break;
+		case 's': s = va_arg(arg, char *);
+			puts(s);
+			break;
+		case 'x': i = va_arg(arg, unsigned int);
+			puts(convert(i, 16));
+			break;
+		}
+	}
+	//va_end(arg);
 }
 
 

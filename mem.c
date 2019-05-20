@@ -1,6 +1,5 @@
 #include "mem.h"
 
-
 #pragma(__align(32))
 struct GDT gdt[12];
 struct GDT idt[32];
@@ -34,7 +33,7 @@ void mem_init(void)
 	init_descriptor(&gdt[2], 0, 0xFFFFF, 1, 1, 0, 1, 0, DATA_SEG | DATA_WRITEABLE);
 	// global data
 	init_descriptor(&gdt[3], 0, 0xFFFFF, 1, 1, 0, 1, 0, DATA_SEG | DATA_WRITEABLE);
-	
+
 	gdtdesc.limit = 4*sizeof(struct GDT) - 1;
 	gdtdesc.base = (uint32_t) &gdt[0];
 
@@ -69,7 +68,7 @@ void init_descriptor(struct GDT *desc, uint32_t base,
 	desc->available = available;
 	desc->present = present;
 	desc->dpl = dpl;
-	desc->type = type;	
+	desc->type = type;
 
 	desc->reserved = 0;
 }
