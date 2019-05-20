@@ -62,6 +62,8 @@ void vga_init(unsigned char *ISA_mem)
 //  if ((inb(0x3CF) & 0x01) == 0) return;
     
   /* From the S3 manual */
+
+#ifdef VGA_S3
   outb(0x46E8, 0x10);  /* Put into setup mode */
   outb(0x3C3, 0x10);
   outb(0x102, 0x01);   /* Enable registers */
@@ -70,6 +72,7 @@ void vga_init(unsigned char *ISA_mem)
   outb(0x4AE8, 0x00);
 
   outb(0x42E8, 0x80);  /* Reset graphics engine? */
+#endif
 
   outb(0x3D4, 0x38);  /* Unlock all registers */
   outb(0x3D5, 0x48);
