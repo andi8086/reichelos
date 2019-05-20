@@ -13,9 +13,10 @@ void clrscr(void)
      
        video = (unsigned char *) VIDEO;
      
-       for (i = 0; i < COLUMNS * LINES * 2; i++)
-         *(video + i) = 0;
-     
+       for (i = 0; i < COLUMNS * LINES * 2; i+=2) {
+         *(video + i) = 0x20;
+	 *(video + i + 1) = 0x07;
+       } 
        xpos = 0;
        ypos = 0;
 }
@@ -67,6 +68,7 @@ static void putchar (int c)
            ypos++;
            if (ypos >= LINES)
              ypos = 0;
+	   cursor(xpos, ypos);
            return;
          }
 
@@ -76,6 +78,8 @@ static void putchar (int c)
        xpos++;
        if (xpos >= COLUMNS)
          goto newline;
+
+       cursor(xpos, ypos);
 }
 
 static void puts(char *s)

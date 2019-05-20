@@ -2,6 +2,7 @@
 #include <stdint.h>
 void startup(uint32_t magic, uint32_t addr);
 
+#include "vga.h"
 #include "printf.h"
 #include "mem.h"
 #include "interrupt.h"
@@ -25,6 +26,8 @@ void startup(uint32_t magic, uint32_t addr)
 {
 	multiboot_info_t *mbi;
 	mbi = (multiboot_info_t *)addr;
+
+	vga_init(0);
 
 	clrscr();
 
@@ -62,7 +65,6 @@ void startup(uint32_t magic, uint32_t addr)
 				mmap->len0 & 0xFFFFFFFF, mmap->type);
 		}
          }
-
 
 	asm volatile ("sti");
 	while(1) {

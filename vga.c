@@ -1,0 +1,134 @@
+#include "vga.h"
+#include "io.h"
+
+void write_0x3C0(uint8_t index, uint8_t byte)
+{
+	inb(0x3DA);
+	outb(0x3C0, index);
+	outb(0x3C0, byte);
+	inb(0x3DA);
+}
+
+uint8_t read_0x3C0(uint8_t index)
+{
+	inb(0x3DA);
+	outb(0x3C0, index);
+	uint8_t res = inb(0x3C1);
+	inb(0x3DA);
+	return res;
+}
+
+void write_0x3C2(uint8_t val)
+{
+	outb(0x3C2, val | 1);
+}
+
+uint8_t read_0x3C2(void)
+{
+	return inb(0x3CC);
+}
+
+void write_0x3C4(uint8_t idx, uint8_t val)
+{
+	outb(0x3C4, idx);
+	outb(0x3C5, val);
+}
+
+uint8_t read_0x3C4(uint8_t idx)
+{
+	outb(0x3C4, idx);
+	return inb(0x3C5);
+}
+
+void write_0x3CE(uint8_t idx, uint8_t val)
+{
+	outb(0x3CE, idx);
+	outb(0x3CF, val);
+}
+
+uint8_t read_0x3CE(uint8_t idx)
+{
+	outb(0x3CE, idx);
+	return inb(0x3CF);
+}
+
+void write_0x3D4(uint8_t idx, uint8_t val)
+{
+	outb(0x3D4, idx);
+	outb(0x3D5, val);
+}
+
+uint8_t read_0x3D4(uint8_t idx)
+{
+	outb(0x3D4, idx);
+	return inb(0x3D5);
+}
+
+
+
+void vga_text80x25(void)
+{
+//	DisableDisplay   // disable output
+	uint8_t tmp = read_0x3C4(0x01);	// sequencer clocking mode
+	tmp |= 1 << 5; // screen disable bit
+	write_0x3C4(0x01, tmp);
+//
+//UnlockCRTC       // unlock registers
+	tmp = read_0x3D4(0x11);
+	tmp &= ~(1 << 7); // allow write of crtc registers
+	write_0x3D4(0x11, tmp);
+
+	write_0x3C0(0x10, 0x0C);
+	write_0x3C0(0x11, 0x00);
+	write_0x3C0(0x12, 0x0F);
+	write_0x3C0(0x13, 0x08);
+	write_0x3C0(0x14, 0x00);
+	write_0x3C2(0x67);
+	write_0x3C4(0x01, 0x00);
+	write_0x3C4(0x03, 0x00);
+	write_0x3C4(0x04, 0x07);
+	write_0x3CE(0x05, 0x10);
+	write_0x3CE(0x06, 0x0E);
+	write_0x3D4(0x00, 0x5F);
+	write_0x3D4(0x01, 0x4F);
+	write_0x3D4(0x02, 0x50);
+	write_0x3D4(0x03, 0x82);
+	write_0x3D4(0x04, 0x55);
+	write_0x3D4(0x05, 0x81);
+	write_0x3D4(0x06, 0xBF);
+	write_0x3D4(0x07, 0x1F);
+	write_0x3D4(0x08, 0x00);
+	write_0x3D4(0x09, 0x4F);
+	write_0x3D4(0x10, 0x9C);
+	write_0x3D4(0x11, 0x8E);
+	write_0x3D4(0x12, 0x8F);
+	write_0x3D4(0x13, 0x28);
+	write_0x3D4(0x14, 0x1F);
+	write_0x3D4(0x15, 0x96);
+	write_0x3D4(0x16, 0xB9);
+	write_0x3D4(0x17, 0xA3);
+
+//LoadRegisters    // load registers
+//ClearScreen      // clear the screen contents
+//LoadFonts        // and for text mode, load fonts 
+                 // note that this may need to alter GC settings
+                 // so be sure to restore those after that
+
+//LockCRTC         // optional: lock the registers again
+	tmp = read_0x3D4(0x11);
+	tmp |= (1 << 7); // allow write of crtc registers
+	write_0x3D4(0x11, tmp);
+
+	//EnableDisplay    // make sure there is output
+	tmp = read_0x3C4(0x01);
+	tmp &= ~(1 << 5);
+	write_0x3C4(0x01, tmp);
+}
+
+// void vga_init(void)
+//{
+	// be sure we have regs on 3DA, ...
+//	outb(0x3C2, inb(0x3CC) | 1);
+
+//	vga_text80x25();
+//}

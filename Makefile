@@ -6,7 +6,7 @@ CFLAGS := -Wno-builtin-declaration-mismatch -fverbose-asm -masm=intel \
 	  -fno-stack-protector -fno-stack-check
 
 OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o printf.o stack_dummy.o \
-	paging.o
+	paging.o vga.o vreset.o
 
 %.o: %.S
 	@echo $@
