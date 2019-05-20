@@ -15,6 +15,20 @@ bool key_released;
 bool enhanced_key;
 
 uint32_t keyboard_status;
+//                                0x15                                                                      0x5D
+static const char table[]       = "q1   zsaw2  cxde43   vftr5  nbhgy6   mju78  ,kio09  ./l;p-   ' [=     ] \\";
+static const char table_shift[] = "Q!   ZSAW@  CXDE$#   VFTR%  NBHGY^   MJU&*  <KIO)(  >?L:P_   \" {+     } |";
+
+static char translate(uint8_t code)
+{
+	if ((code & 0x7F) == 0x5A) return 0x0A;
+	if (code >= 0x15 && code <= 0x5D) {
+		code -= 0x15;
+		return keyboard_status & (KBD_LSHIFT | KBD_RSHIFT) ? table_shift[code] : table[code];
+	}
+	if (code == 0x66) return 0x08;
+	return 0xFF;
+}
 
 void kbd_buff_push(uint8_t scancode)
 {
@@ -59,10 +73,13 @@ void kbd_buff_push(uint8_t scancode)
 	// here we may have enhanced key or key
 	if (kbd_buff_idx >= KBD_BUFF_MAX) return;
 
+	char c = translate(scancode);
+	if (c == 0xFF) return;
+
 	for (uint32_t idx = kbd_buff_idx; idx > 0; idx--) {
 		keyboard_buffer[idx] = keyboard_buffer[idx-1];
 	}
-	keyboard_buffer[0] = scancode;
+	keyboard_buffer[0] = c;
 	kbd_buff_idx++;
 }
 

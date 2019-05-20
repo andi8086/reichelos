@@ -76,28 +76,36 @@ static void vga_text_scrollup(void)
 
 static void putchar (int c)
 {
-       if (c == '\n' || c == '\r')
-         {
-         newline:
-           xpos = 0;
-           ypos++;
-           if (ypos >= LINES) {
-              vga_text_scrollup();
-	      ypos--;
-           }
+	if (c == '\n' || c == '\r') {
+        newline:
+		xpos = 0;
+		ypos++;
+           	if (ypos >= LINES) {
+              		vga_text_scrollup();
+	      		ypos--;
+           	}
+	   	cursor(xpos, ypos);
+           	return;
+        } else if (c == 0x08) {
+	   	if (xpos == 0) {
+			if (ypos == 0) return;
+			xpos = COLUMNS-1;
+			ypos--;
+		} else {
+			xpos--;
+		}
+		cursor(xpos, ypos);
+		*(video + (xpos + ypos * COLUMNS) * 2) = 0x20;	
+		return;
+	}
+	*(video + (xpos + ypos * COLUMNS) * 2) = c & 0xFF;
+	*(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
 
-	   cursor(xpos, ypos);
-           return;
-         }
+        xpos++;
+        if (xpos >= COLUMNS)
+		goto newline;
 
-       *(video + (xpos + ypos * COLUMNS) * 2) = c & 0xFF;
-       *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
-
-       xpos++;
-       if (xpos >= COLUMNS)
-         goto newline;
-
-       cursor(xpos, ypos);
+       	cursor(xpos, ypos);
 }
 
 static void puts(char *s)
@@ -112,7 +120,7 @@ char *convert(unsigned int num, int base)
 	return buffer;
 }
 
-void printf (const char *format, ...)
+void printf(const char *format, ...)
 {
 	va_list arg;
 	unsigned int i;
