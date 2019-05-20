@@ -35,4 +35,4 @@ debug: init.elf
 	./debug.sh
 
 clean:
-	rm -f $(OBJs) init.elf init.bin
+	rm -f $(OBJs) *.s init.elf init.bin
