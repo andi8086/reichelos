@@ -35,18 +35,18 @@ void itoa (char *buf, int base, int d)
            ud = -d;
        } else if (base == 16)
                divisor = 16;
-     
+
        /* Divide UD by DIVISOR until UD == 0. */
        do {
            int remainder = ud % divisor;
-     
+
            *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
        }
        while (ud /= divisor);
-     
+
        /* Terminate BUF. */
        *p = 0;
-     
+
        /* Reverse BUF. */
        p1 = buf;
        p2 = p - 1;
@@ -59,6 +59,21 @@ void itoa (char *buf, int base, int d)
        }
 }
 
+static void vga_text_scrollup(void)
+{
+	for (int i = 0; i < COLUMNS*2; i++)
+	{
+		for (int j = 1; j < LINES; j++)
+		{
+			*(video + (j-1)*COLUMNS*2 + i) = *(video + j*COLUMNS*2 + i);
+		}
+	}
+	for (int i = 0; i < COLUMNS; i++)
+	{
+		*(video + (LINES-1)*COLUMNS*2 + i*2) = 0x20;
+	}
+}
+
 static void putchar (int c)
 {
        if (c == '\n' || c == '\r')
@@ -66,8 +81,11 @@ static void putchar (int c)
          newline:
            xpos = 0;
            ypos++;
-           if (ypos >= LINES)
-             ypos = 0;
+           if (ypos >= LINES) {
+              vga_text_scrollup();
+	      ypos--;
+           }
+
 	   cursor(xpos, ypos);
            return;
          }

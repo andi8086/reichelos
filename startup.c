@@ -2,6 +2,8 @@
 #include <stdint.h>
 void startup(uint32_t magic, uint32_t addr);
 
+#define OS_VERSION "ReichelOS i386 v0.1"
+
 #include "vga.h"
 #include "printf.h"
 #include "mem.h"
@@ -65,6 +67,8 @@ void startup(uint32_t magic, uint32_t addr)
 				mmap->len0 & 0xFFFFFFFF, mmap->type);
 		}
          }
+
+	printf("\n%s\n", OS_VERSION);
 
 	asm volatile ("sti");
 	while(1) {

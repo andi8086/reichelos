@@ -4,7 +4,7 @@
 #define VIDEO 0xB8000
 
 #define COLUMNS 80
-#define LINES 24
+#define LINES 25
 #define ATTRIBUTE 7
 
 #include <stdint.h>

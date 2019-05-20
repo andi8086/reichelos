@@ -64,8 +64,6 @@ uint8_t read_0x3D4(uint8_t idx)
 	return inb(0x3D5);
 }
 
-
-
 void vga_text80x25(void)
 {
 //	DisableDisplay   // disable output
