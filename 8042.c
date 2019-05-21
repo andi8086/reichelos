@@ -185,8 +185,8 @@ void init_8042(void)
 		printf("ERROR: Keyboard self test failed\n");
 		return;
 	}	
-
 	_8042_enable_port1_interrupt();
+	printf("Keyboard initialized (IRQ1).\n");
 }
 
 uint8_t keyboard_send_command(uint8_t cmd)

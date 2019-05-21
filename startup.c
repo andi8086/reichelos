@@ -24,6 +24,14 @@ void dummy2(void) {
 const char *ticksymb = "-/|\\";
 
 char buffer[255];
+char command[256];
+uint32_t cmd_idx;
+
+void clear_command(void)
+{
+	rmemset(command, 0, 256);
+	cmd_idx = 0;
+}
 
 void startup(uint32_t magic, uint32_t addr)
 {
@@ -80,12 +88,6 @@ void startup(uint32_t magic, uint32_t addr)
 		*(char *)(VIDEO + 158) = ticksymb[(syscounter >> 6) % 4];
 		*(char *)(VIDEO + 159) = 0x07;
 		char c = (char)kbd_buff_pop();
-		if (c) {
-			printf("%c", c);
-		}
-		if (c == 0x0A) {
-		   	printf(":");
-		}
 		*(char *)(VIDEO + 140) = keyboard_status & KBD_LSHIFT ? 'S' : ' ';
 		*(char *)(VIDEO + 142) = keyboard_status & KBD_LCTRL ? 'C' : ' ';
 		*(char *)(VIDEO + 144) = keyboard_status & KBD_LGUI ? 'W' : ' ';
@@ -95,6 +97,27 @@ void startup(uint32_t magic, uint32_t addr)
 		*(char *)(VIDEO + 152) = keyboard_status & KBD_RGUI ? 'W' : ' ';
 		*(char *)(VIDEO + 154) = keyboard_status & KBD_RCTRL ? 'C' : ' ';
 		*(char *)(VIDEO + 156) = keyboard_status & KBD_RSHIFT ? 'S' : ' ';
+		if (!c) continue;
+		if (cmd_idx < 255 || (cmd_idx == 255 && c == 0x08)) {
+			printf("%c", c);
+			switch(c) {
+			case 0x08:
+				if (cmd_idx == 0) continue;
+				command[cmd_idx] = 0x00;
+				cmd_idx--;
+				continue;
+			case 0x0A: break;
+			default:
+				command[cmd_idx++] = c;
+				continue;
+			}
+		}
+
+		if (c == 0x0A) {
+			printf("Command was %s\n", command);
+		   	printf(":");
+			clear_command();
+		}
 	}
 }
 
