@@ -38,7 +38,7 @@ void startup(uint32_t magic, uint32_t addr)
 	multiboot_info_t *mbi;
 	mbi = (multiboot_info_t *)addr;
 
-	vga_init(0);
+	vga_init();
 
 	clrscr();
 
