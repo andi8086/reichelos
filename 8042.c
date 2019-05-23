@@ -176,15 +176,22 @@ void init_8042(void)
 	// enable first PS/2 port
 	_8042_send_command(0xAE, false);
 
-	if (keyboard_send_command(0xFF) != 0xFA) {
+	uint8_t init_response;
+	init_response = keyboard_send_command(0xFF);
+	if (init_response != 0xFA) {
 		printf("ERROR: Keyboard reset error\n");
-		return;
+		goto skip_reset;
 	}
 	while (!inb(PS2_STATUS_PORT) & PS2_OUTPUT_BUFFER_FULL);
-	if (inb(PS2_DATA_PORT) != 0xAA) {
+	init_response = inb(PS2_DATA_PORT);
+	if (init_response != 0xAA) {
 		printf("ERROR: Keyboard self test failed\n");
+		if (init_response == 0xFC) {
+			printf("Basic assurance test failed (0xFC)\n");
+		}
 		return;
 	}	
+skip_reset:
 	_8042_enable_port1_interrupt();
 	printf("Keyboard initialized (IRQ1).\n");
 }
