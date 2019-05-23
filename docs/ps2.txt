@@ -1,0 +1,33 @@
+a) Do a couple dummy reads from the data port.
+b) Get the current controller configuration byte (controller command 0x20).
+c) Do another dummy read from the data port.
+d) Set a new configuration byte (controller command 0x60).
+     Note: This step disbles IRQs, enables clock signals to any devices
+           and disables the scan code translation for the first PS/2 port
+e) Do another dummy read from the data port.
+f) Send "disable device B" command to the controller (controller command 0xA7).
+g) Get the current controller configuration (controller command 0x20).
+h) If clock signal to device B is still enabled, then assume the PS/2
+     controller is an older "single device" controller rather than
+     a "dual device" controller, and mark device B as unusable.
+i) If it is a "dual device" controller, send the controller configuration
+     byte again to re-enable device B (controller command 0x60).
+j) Create a new node for the PS/2 controller in my "device tree" (mark the
+     IO ports and IRQ/s as used, etc).
+k) Disable scanning for device A by sending command 0xF5 to it.
+l) If device B is still usable, disable scanning for device B by
+     sending command 0xF5 to it.
+m) Perform device A interface test (send command 0xAB to device).
+n) If device B is still usable, perform device B interface test (send
+     command 0xAB to device).
+o) Reset device A (device command 0xFF) - if it doesn't return 0xFA then
+     0xAA (ACK then BAT test passed) mark device A as unusable, otherwise
+     disable device A scanning again (device command 0xF5).
+p) If device A is still usable, send the "identify" device command to
+     it and store anything returned for later.
+q) If device B is still usable, reset device B (device command 0xFF) - if
+     it doesn't return 0xFA then 0xAA mark device B as unusable, otherwise
+     disable device A scanning again (device command 0xF5).
+r) If device B is still usable, send the "identify" device command to
+     it and store anything returned for later.
+s) Add any usable devices to the the "device tree" ready to load device drivers
