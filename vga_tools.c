@@ -363,8 +363,8 @@ void set_text_mode(VGA_TEXT_MODE mode)
 	switch(mode) {
 	case TEXT_40x25:
 		write_regs(g_40x25_text);
-		cols = 90;
-		rows = 60;
+		cols = 40;
+		rows = 25;
 		ht = 16;
 		break;
 	case TEXT_40x50:

@@ -18,7 +18,7 @@ void clrscr(void)
      
        for (i = 0; i < COLUMNS * LINES * 2; i+=2) {
          *(video + i) = 0x20;
-	 *(video + i + 1) = 0x07;
+	 *(video + i + 1) = ATTRIBUTE;
        } 
        xpos = 0;
        ypos = 0;

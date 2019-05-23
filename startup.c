@@ -12,6 +12,7 @@ void startup(uint32_t magic, uint32_t addr);
 #include "multiboot.h"
 #include "8042.h"
 #include "floppy.h"
+#include "kcmd.h"
 
 void clrscr_pre(void);
 void print_pre(char *dest, char *src);
@@ -84,11 +85,7 @@ void startup(uint32_t magic, uint32_t addr)
 
 	printf("\n%s\n", OS_VERSION);
 
-	printf("Kernel command line\n");
-	while(1) {
-		printf("\n:");
-		scanf("%256s", buffer);
-	}
+	kcmdloop();
 }
 
 void clrscr_pre(void)
