@@ -1,0 +1,27 @@
+ byte pageport16[]={0x8f,0x8b,0x89,0x8a};
+
+  // defines for direction (dir)
+  #define PLAYBACK 0
+  #define RECORD 1
+
+  void setupDMA16(dword addr,dword size,byte dma,byte dir) {
+    byte page;
+    word offset;
+    byte mode;
+
+    size--;  //size must be 1 less than requested
+
+    page = (addr >> 16) & 0xff;
+    offset = (addr & 0xffff) >> 1; 
+    offset += (page & 0x1) << 15; outp(0xd4,dma); //mask DMA channel outp(0xd8,0); //clear DMA outp(pageport16[dma-4],page); //set page outp(0xc0+(dma-4)*4,offset & 0xff); //set offset (LO BYTE) outp(0xc0+(dma-4)*4,(offset & 0xff00)>> 8);  //set offset (HI BYTE)
+
+    outp(0xc0+(dma-4)*4+2,size & 0xff);   //set size (LO BYTE)
+    outp(0xc0+(dma-4)*4+2,(size & 0xff00) >> 8);  //set size (HI BYTE)
+
+    if (dir==PLAYBACK) mode=44h; else mode==48h;
+    mode+=dma;
+    // mode+=0x10;   //add this to use Auto DMA mode
+    outp(0xd6,mode);  //set mode
+
+    outp(0xd4,dma-4);    //unmask DMA
+  }

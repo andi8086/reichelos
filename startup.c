@@ -11,6 +11,7 @@ void startup(uint32_t magic, uint32_t addr);
 #include "timer.h"
 #include "multiboot.h"
 #include "8042.h"
+#include "floppy.h"
 
 void clrscr_pre(void);
 void print_pre(char *dest, char *src);
@@ -78,6 +79,8 @@ void startup(uint32_t magic, uint32_t addr)
         }
 
 	init_8042();
+
+	fdd_init();
 
 	printf("\n%s\n", OS_VERSION);
 
