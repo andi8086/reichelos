@@ -1,6 +1,6 @@
 #include "floppy.h"
 #include "cmos.h"
-#include "printf.h"
+#include "conio.h"
 
 fd_parameter_block fd_drives[2];
 

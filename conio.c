@@ -1,6 +1,9 @@
-#include "printf.h"
+#include "conio.h"
 #include "stdarg.h"
 #include <stdint.h>
+#include "8042.h"
+#include "mem.h"
+#include "vga.h"
 
 static int xpos;
 static int ypos;
@@ -59,6 +62,34 @@ void itoa (char *buf, int base, int d)
        }
 }
 
+uint32_t errno;
+
+#define ERR_OK	  0
+#define ERR_NONUM 1
+
+uint32_t atoi(char *s)
+{
+	char *tmp = s;
+	uint32_t num;
+	uint32_t base;
+	while (*s && (*s >= '0' && *s <= '9')) {
+		s++;
+	}
+	if (s == tmp) {
+		errno = ERR_NONUM;
+		return 0;
+	}
+	s--;
+	base = 1;
+	num = 0;
+	while (s >= tmp) {
+		num = num + base*(*s - 0x30);
+		base = base * 10;
+		s--;
+	}
+	return num;
+}
+
 static void vga_text_scrollup(void)
 {
 	for (int i = 0; i < COLUMNS*2; i++)
@@ -74,7 +105,7 @@ static void vga_text_scrollup(void)
 	}
 }
 
-static void putchar (int c)
+static void putchar(int c)
 {
 	if (c == '\n' || c == '\r') {
         newline:
@@ -164,4 +195,71 @@ void printf(const char *format, ...)
 	//va_end(arg);
 }
 
+char getch(void)
+{
+	return (char)kbd_buff_pop();
+}
 
+#define CH_PRINTABLE(c) (c >= 0x20 && c <= 0x7E)
+
+void scanf(const char *format, ...)
+{
+	va_list arg;
+	unsigned int i;
+	char c;
+	char *s;
+	int n = 0;	// number of entered chars
+	int n_max = 0;
+	int lidx = 0;
+	int lidx_max = 4; // maximally 99999 characters allowed with %s
+	char buffer[6];
+
+	va_start(arg, format);
+
+	while(*format) {
+		while (*format != '%' && *format != 0)
+		{
+			format++;
+		}
+		if (!*format) break;
+		n = 0;
+		format++;
+		rmemset(buffer, 0, 6);
+		while(*format && (*format >= 0x30 && *format <= 0x39) &&
+		      lidx < lidx_max) {
+			buffer[lidx++] = *(format++);
+		}
+		if (!*format) break;
+		n_max = atoi(buffer);
+		switch(*format++) {
+		case 'c': s = va_arg(arg, char*);
+			while(!(c = getch()) || !CH_PRINTABLE(c));
+			putchar(c);
+			*s = c;	
+			break;
+		case 's': s = va_arg(arg, char*);
+			do {
+				while(!(c = getch()));
+				switch(c) {
+				case 0x08:
+					if (n == 0) break;
+					*(s + n) = 0;
+					n--;
+					putchar(c);
+					break;
+				default:
+					if (!CH_PRINTABLE(c)) break;
+					if (n >= n_max) break;
+					*(s + n) = c;
+					n++;
+					putchar(c);
+					break;
+				}
+			} while (c != 0x0A);
+			*(s + n) = 0;
+			break;
+		}
+	}
+
+
+} 

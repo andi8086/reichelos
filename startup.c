@@ -5,7 +5,7 @@ void startup(uint32_t magic, uint32_t addr);
 #define OS_VERSION "ReichelOS i386 v0.1"
 
 #include "vga.h"
-#include "printf.h"
+#include "conio.h"
 #include "mem.h"
 #include "interrupt.h"
 #include "timer.h"
@@ -24,7 +24,7 @@ void dummy2(void) {
 
 const char *ticksymb = "-/|\\";
 
-char buffer[255];
+char buffer[256];
 char command[256];
 uint32_t cmd_idx;
 
@@ -56,7 +56,6 @@ void startup(uint32_t magic, uint32_t addr)
 
 	if (mbi->flags & 2)
 	{
-
 		printf("mem_lower = %dKB, mem_upper = %dKB\n", mbi->mem_lower,\
 			 mbi->mem_upper);
 	}
@@ -81,46 +80,14 @@ void startup(uint32_t magic, uint32_t addr)
 	init_8042();
 
 	fdd_init();
+	asm volatile ("sti");
 
 	printf("\n%s\n", OS_VERSION);
 
-	printf(":");
-
-	asm volatile ("sti");
+	printf("Kernel command line\n");
 	while(1) {
-		*(char *)(VIDEO + (COLUMNS-1)*2) = ticksymb[(syscounter >> 6) % 4];
-		*(char *)(VIDEO + 159) = 0x07;
-		char c = (char)kbd_buff_pop();
-		*(char *)(VIDEO + 140) = keyboard_status & KBD_LSHIFT ? 'S' : ' ';
-		*(char *)(VIDEO + 142) = keyboard_status & KBD_LCTRL ? 'C' : ' ';
-		*(char *)(VIDEO + 144) = keyboard_status & KBD_LGUI ? 'W' : ' ';
-		*(char *)(VIDEO + 146) = keyboard_status & KBD_LALT ? 'A' : ' ';
-		*(char *)(VIDEO + 148) = keyboard_status & KBD_RALT ? 'A' : ' ';
-		*(char *)(VIDEO + 150) = keyboard_status & KBD_APPS ? 'M' : ' ';
-		*(char *)(VIDEO + 152) = keyboard_status & KBD_RGUI ? 'W' : ' ';
-		*(char *)(VIDEO + 154) = keyboard_status & KBD_RCTRL ? 'C' : ' ';
-		*(char *)(VIDEO + 156) = keyboard_status & KBD_RSHIFT ? 'S' : ' ';
-		if (!c) continue;
-		if (cmd_idx < 255 || (cmd_idx == 255 && c == 0x08)) {
-			printf("%c", c);
-			switch(c) {
-			case 0x08:
-				if (cmd_idx == 0) continue;
-				command[cmd_idx] = 0x00;
-				cmd_idx--;
-				continue;
-			case 0x0A: break;
-			default:
-				command[cmd_idx++] = c;
-				continue;
-			}
-		}
-
-		if (c == 0x0A) {
-			printf("Command was %s\n", command);
-		   	printf(":");
-			clear_command();
-		}
+		printf("\n:");
+		scanf("%256s", buffer);
 	}
 }
 

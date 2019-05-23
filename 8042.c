@@ -1,6 +1,6 @@
 #include "io.h"
 #include "8042.h"
-#include "printf.h"
+#include "conio.h"
 
 #define KBD_CFG_INT_FIRST (1 << 0)
 #define KBD_CFG_INT_SECOND (1 << 1)

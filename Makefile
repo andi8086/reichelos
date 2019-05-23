@@ -5,7 +5,7 @@ CC ?= gcc
 CFLAGS := -Wno-builtin-declaration-mismatch -fverbose-asm -masm=intel \
 	  -fno-stack-protector -fno-stack-check
 
-OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o printf.o stack_dummy.o \
+OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o conio.o stack_dummy.o \
 	paging.o vga_fonts.o vga_cursor.o vga.o vga_modes.o vga_tools.o \
 	8042.o floppy.o cmos.o dma.o
 
