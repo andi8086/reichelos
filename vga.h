@@ -3,8 +3,14 @@
 
 #include <stdint.h>
 
-#include "vga_tools.h"
-
+typedef enum {
+	TEXT_80x25,
+	TEXT_40x25,
+	TEXT_90x30,
+	TEXT_90x60,
+	TEXT_40x50,
+	TEXT_80x50
+} VGA_TEXT_MODE;
 
 #define VIDEO vga_screen_mem
 #define LINES vga_text_lines

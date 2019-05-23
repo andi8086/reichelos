@@ -1,6 +1,8 @@
 #ifndef __VGA_TOOLS_H__
 #define __VGA_TOOLS_H__
 
+#include "vga.h"
+
 extern void dump(unsigned char *regs, unsigned count);
 extern void dump_regs(unsigned char *regs);
 extern void read_regs(unsigned char *regs);
@@ -26,7 +28,7 @@ extern void write_pixel8x(unsigned x, unsigned y, unsigned c);
 extern void draw_x(void);
 extern void dump_state(void);
 
-extern void set_text_mode(int hi_res);
+extern void set_text_mode(VGA_TEXT_MODE mode);
 
 extern void demo_graphics(void);
 extern unsigned char reverse_bits(unsigned char arg);

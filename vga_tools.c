@@ -356,19 +356,44 @@ void dump_state(void)
 	dump_regs(state);
 }
 
-void set_text_mode(int hi_res)
+void set_text_mode(VGA_TEXT_MODE mode)
 {
 	unsigned rows, cols, ht, i;
 
-	if(hi_res)
-	{
+	switch(mode) {
+	case TEXT_40x25:
+		write_regs(g_40x25_text);
+		cols = 90;
+		rows = 60;
+		ht = 16;
+		break;
+	case TEXT_40x50:
+		write_regs(g_40x50_text);
+		cols = 40;
+		rows = 50;
+		ht = 8;
+		break;
+	case TEXT_80x50:
+		write_regs(g_80x50_text);
+		cols = 80;
+		rows = 50;
+		ht = 8;
+		break;
+		break;
+	case TEXT_90x30:
+		write_regs(g_90x30_text);
+		cols = 90;
+		rows = 30;
+		ht = 16;
+		break;
+	case TEXT_90x60:
 		write_regs(g_90x60_text);
 		cols = 90;
 		rows = 60;
 		ht = 8;
-	}
-	else
-	{
+		break;
+	case TEXT_80x25:
+	default:
 		write_regs(g_80x25_text);
 		cols = 80;
 		rows = 25;

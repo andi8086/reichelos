@@ -85,7 +85,7 @@ void startup(uint32_t magic, uint32_t addr)
 
 	asm volatile ("sti");
 	while(1) {
-		*(char *)(VIDEO + 158) = ticksymb[(syscounter >> 6) % 4];
+		*(char *)(VIDEO + (COLUMNS-1)*2) = ticksymb[(syscounter >> 6) % 4];
 		*(char *)(VIDEO + 159) = 0x07;
 		char c = (char)kbd_buff_pop();
 		*(char *)(VIDEO + 140) = keyboard_status & KBD_LSHIFT ? 'S' : ' ';
