@@ -1,8 +1,9 @@
 #include "tree_bst.h"
+#include "conio.h"
 
 // returns the node whose critearis is the smallest one which is greater or
 // equal to the requested one
-bst_node *bst_search_smallest_ge(uint32_t key, bst_node *node)
+bst_node *bst_search_smallest_ge(bst_node *node, uint32_t key)
 {
     bst_node *current = node;
     uint32_t smallest_delta = 0xFFFFFFFF;
@@ -27,33 +28,23 @@ bst_node *bst_search_smallest_ge(uint32_t key, bst_node *node)
     return best_match;
 }
 
-// this actually needs a memory manager itself... which does not work, because
-// the kernel memory manager is built on-top of this... so we need a very
-// stupid memory manager for chunks that are equal in size
-bst_node *bst_new(uint32_t key)
-{
-
-
-}
-
 // inserts data with a given key into the tree, i.e. creates a new node if
 // needed and returns the pointer to the node where the data is to be inserted
-bst_node *bst_insert(bst_node **root, uint32_t key)
+bst_node *bst_insert(bst_node *root, uint32_t key, bst_node *new)
 {
-    bst_node **walk = root;
-    while (*walk) {
-        uint32_t currkey = (*walk)->key;
+    bst_node *walk = root;
+    while (walk) {
+        uint32_t currkey = walk->key;
         if (currkey == key) {
-            return *walk;
+            return walk;
         }
         if (key > currkey) {
-            walk = &(*walk)->right;
+            walk = walk->right;
         } else {
-            walk = &(*walk)->left;
+            walk = walk->left;
         }
     }
-    *walk = bst_new(key);
-    return *walk;
+    return new;
 }
 
 bst_node *bst_find_min(bst_node *node)
@@ -88,15 +79,31 @@ void bst_delete_node(bst_node *node,  uint32_t key)
         return;
     }
     // delete the key here
+#if 1
+    printf("Deleting BST node at %x, key = %u\n", node, key);
+#endif
+
     if (node->left && node->right) {
         bst_node *successor = bst_find_min(node->right);
         node->key = successor->key;
         bst_delete_node(successor, successor->key);
     } else if (node->left) {
+
+#if 1
+    printf("Replae node in parent left\n");
+#endif
         bst_replace_node_in_parent(node, node->left); 
     } else if (node->right) {
+
+#if 1
+    printf("Replace node in parent right\n");
+#endif
         bst_replace_node_in_parent(node, node->right);
     } else {
+
+#if 1
+    printf("Replace node in parent with 0\n");
+#endif
         bst_replace_node_in_parent(node, 0);
     }
 }

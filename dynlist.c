@@ -13,7 +13,12 @@ void dynlist_append(dynlist **list, dynlist *new)
 
 void dynlist_prepend(dynlist **list, dynlist *new)
 {
-    if (!*list) return;
+    if (!*list) {
+        *list = new;
+        new->next = 0;
+        new->prev = 0;
+        return;
+    }
     dynlist *old = *list;
     dynlist *prev = (*list)->prev;
 
@@ -35,4 +40,5 @@ void dynlist_del(dynlist **list)
     if (next) {
         next->prev = prev;
     }
+    (*list) = next;
 }

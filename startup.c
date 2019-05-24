@@ -88,6 +88,10 @@ void startup(uint32_t magic, uint32_t addr)
 
 	printf("\n%s\n", OS_VERSION);
 
+    for (int i = 0; i < 10; i++) {
+        malloc(131072);
+    }
+
 	kcmdloop();
 }
 
