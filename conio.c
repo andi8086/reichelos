@@ -24,7 +24,7 @@ void clrscr(void)
        ypos = 0;
 }
 
-void itoa (char *buf, int base, int d)
+void itoa(char *buf, int base, int d)
 {
        char *p = buf;
        char *p1, *p2;

@@ -13,7 +13,7 @@ void startup(uint32_t magic, uint32_t addr);
 #include "8042.h"
 #include "floppy.h"
 #include "kcmd.h"
-#include "malloc.h"
+#include "kmalloc.h"
 
 void clrscr_pre(void);
 void print_pre(char *dest, char *src);
@@ -88,9 +88,12 @@ void startup(uint32_t magic, uint32_t addr)
 
 	printf("\n%s\n", OS_VERSION);
 
-    for (int i = 0; i < 10; i++) {
-        malloc(131072);
-    }
+
+	void *p = kmalloc(65536);
+	for (int i = 0; i < 4; i++) {
+		kmalloc(131072);
+	}
+	kfree(p);
 
 	kcmdloop();
 }

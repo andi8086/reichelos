@@ -7,6 +7,7 @@ typedef struct __attribute__((packed)) {
 } ptr_header;
 
 void heap_init(void);
-void *malloc(uint32_t size);
+void *kmalloc(uint32_t size);
+void kfree(void *p);
 
 #endif
