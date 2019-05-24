@@ -65,7 +65,7 @@ void *malloc(uint32_t size)
                                            sizeof(dynlist));
 
     f_header->ptr_end = (void *)(ptr_end);
-    f_header->ptr = (void *)(ptr_start + alloc_size + 1);
+    f_header->ptr = (void *)(ptr_start + alloc_size);
     uint32_t f_size = key - alloc_size;
     
     if (f_size == 0) goto malloc_finish; 
