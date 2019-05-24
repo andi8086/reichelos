@@ -7,7 +7,7 @@ CFLAGS := -Wno-builtin-declaration-mismatch -fverbose-asm -masm=intel \
 
 OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o conio.o stack_dummy.o \
 	paging.o vga_fonts.o vga_cursor.o vga.o vga_modes.o vga_tools.o \
-	8042.o floppy.o cmos.o dma.o kcmd.o
+	8042.o floppy.o cmos.o dma.o kcmd.o tree_bst.o malloc.o dynlist.o
 
 %.o: %.S
 	@echo $@

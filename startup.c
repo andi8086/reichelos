@@ -13,6 +13,7 @@ void startup(uint32_t magic, uint32_t addr);
 #include "8042.h"
 #include "floppy.h"
 #include "kcmd.h"
+#include "malloc.h"
 
 void clrscr_pre(void);
 void print_pre(char *dest, char *src);
@@ -81,6 +82,8 @@ void startup(uint32_t magic, uint32_t addr)
 	init_8042();
 
 	fdd_init();
+
+    heap_init();
 	asm volatile ("sti");
 
 	printf("\n%s\n", OS_VERSION);
