@@ -10,5 +10,6 @@ typedef struct __attribute__((packed)) _dynlist {
 void dynlist_append(dynlist **list, dynlist *new);
 void dynlist_prepend(dynlist **list, dynlist *new);
 void dynlist_del(dynlist **list);
+void dynlist_remove(dynlist **list, void *e);
 
 #endif // __DYNLIST_H__

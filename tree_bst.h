@@ -15,7 +15,7 @@ typedef struct __attribute__((packed)) _bst_node {
 } bst_node;
 
 bst_node *bst_search_smallest_ge(bst_node *node, uint32_t key);
-bst_node *bst_insert(bst_node *root, uint32_t key, bst_node *new);
+bst_node **bst_insert(bst_node **root, uint32_t key);
 bst_node *bst_find_min(bst_node *node);
 void bst_replace_node_in_parent(bst_node *node, bst_node *new_node);
 void bst_delete_node(bst_node *node,  uint32_t key);

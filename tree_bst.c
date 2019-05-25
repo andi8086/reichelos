@@ -28,23 +28,25 @@ bst_node *bst_search_smallest_ge(bst_node *node, uint32_t key)
     return best_match;
 }
 
-// inserts data with a given key into the tree, i.e. creates a new node if
-// needed and returns the pointer to the node where the data is to be inserted
-bst_node *bst_insert(bst_node *root, uint32_t key, bst_node *new)
+// returns the insert location, where the node data has to go.
+// Either there exists a node, or not.
+bst_node **bst_insert(bst_node **root, uint32_t key)
 {
-    bst_node *walk = root;
-    while (walk) {
-        uint32_t currkey = walk->key;
+    bst_node **walk = root;
+    while (*walk) {
+        uint32_t currkey = (*walk)->key;
         if (currkey == key) {
+    	    printf("bst_insert: existing node at %x\n", walk);
             return walk;
         }
         if (key > currkey) {
-            walk = walk->right;
+            walk = &(*walk)->right;
         } else {
-            walk = walk->left;
+            walk = &(*walk)->left;
         }
     }
-    return new;
+    printf("bst_insert: new node at %x\n", walk);
+    return walk;
 }
 
 bst_node *bst_find_min(bst_node *node)
@@ -68,7 +70,7 @@ void bst_replace_node_in_parent(bst_node *node, bst_node *new_node)
     }    
 }
 
-void bst_delete_node(bst_node *node,  uint32_t key)
+void bst_delete_node(bst_node *node, uint32_t key)
 {
     if (key < node->key) {
         bst_delete_node(node->left, key);
@@ -90,7 +92,7 @@ void bst_delete_node(bst_node *node,  uint32_t key)
     } else if (node->left) {
 
 #if 1
-    printf("Replae node in parent left\n");
+    printf("Replace node in parent left\n");
 #endif
         bst_replace_node_in_parent(node, node->left); 
     } else if (node->right) {
