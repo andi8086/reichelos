@@ -3,7 +3,7 @@ all: init.bin init.elf
 CC ?= gcc
 
 CFLAGS := -Wno-builtin-declaration-mismatch -fverbose-asm -masm=intel \
-	  -fno-stack-protector -fno-stack-check
+	  -fno-stack-protector -fno-stack-check -DIN_KERNEL
 
 OBJs := init.o startup.o mem.o interrupt.o irq.o timer.o conio.o stack_dummy.o \
 	paging.o vga_fonts.o vga_cursor.o vga.o vga_modes.o vga_tools.o \

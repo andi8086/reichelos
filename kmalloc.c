@@ -3,7 +3,7 @@
 #include "kmalloc.h"
 #include "kernel.h"
 #include "dynlist.h"
-#include "conio.h"
+#include "kprintf.h"
 
 typedef struct __attribute__((packed)) {
 	bst_node node;
@@ -41,7 +41,7 @@ void prepare_bst_node(heap_tree_node *htn, uint32_t a_size,
 void heap_init(void)
 {
 	prepare_bst_node(heap_root, 0, 0x150000, 1048576);
-	printf("Memory manager initialized.\n");
+	KPRINTF("Memory manager initialized.\n");
 }
 
 void kmemcpy(uint8_t *dest, uint8_t *src, uint32_t count)
@@ -61,7 +61,6 @@ bst_node **heap_add_chunk(uint32_t f_size, bst_node *newnode)
 		// there is no node, but the pointer points to the place in the
 		// tree where it must be added
 		*f_node = newnode;
-		printf("New BST node at %x\n", *f_node);
 	} else {
 		// there is already a node with the same key, so add the
 		// ptr_header to its data list
@@ -77,13 +76,7 @@ void kfree(void *ptr)
 	heap_tree_node *htn = (heap_tree_node *)((uint32_t )ptr -
 			       sizeof(heap_tree_node));
 
-	printf("kfree: htn = %x\n", htn);
-
 	bst_node *node = &(htn->node);
-
-	printf("kfree: mem @ %x\n", htn->a_header.ptr);
-	printf("kfree: size: %u\n", (uint32_t)htn->a_header.ptr_end -
-				    (uint32_t)htn->a_header.ptr);
 
 	// create a new bst node describing the freed memory
 	// by overwriting the existing bst node describing the allocated
@@ -97,7 +90,7 @@ void kfree(void *ptr)
 
 	dynlist **ptrlist = (dynlist **)&node->data;
 	if (!*ptrlist) {
-		printf("kfree: error, dynlist is NULL\n");
+		KPRINTF("kfree: error, dynlist is NULL\n");
 		return;
 	}
 	// check if this is a master BST node, linking to other nodes with the
@@ -176,14 +169,11 @@ void *kmalloc(uint32_t size)
 		return 0;
 	}
 
-	printf("closest BST tree node at %x for %u byte chunk\n",
-	       (uint32_t) old_node, old_node->key);
-
 	// check if the BST node has a valid dynamic pointer list
 
 	dynlist *old_ptr_list = (dynlist *)old_node->data;
 	if (!old_ptr_list) {
-		printf("heap corruption! Zombie BST node\n");
+		KPRINTF("heap corruption! Zombie BST node\n");
 		return 0;
 	}
 
@@ -218,11 +208,7 @@ void *kmalloc(uint32_t size)
 	// the whole memory of the new node is always inside a free region
 	bst_node *newnode = &((heap_tree_node *)ptr_start)->node;
 
-
 	bst_node **f_node = heap_add_chunk(f_size, newnode);
-
-
-
 
 malloc_finish:
 	// delete the pointer header from the dynlist
@@ -250,7 +236,5 @@ malloc_finish:
 	// the pointer to be returned must point to the beginning of the
 	// allocated chunk
 	void *ret_ptr = ((heap_tree_node *)ptr_start)->a_header.ptr;
-
-	printf("a_header.ptr = %x\n", ret_ptr);
 	return ret_ptr;
 }
