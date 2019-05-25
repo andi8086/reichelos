@@ -1,5 +1,9 @@
 #include "tree_bst.h"
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 // returns the node whose critearis is the smallest one which is greater or
 // equal to the requested one
 bst_node *bst_search_smallest_ge(bst_node *node, uint32_t key)
@@ -61,6 +65,9 @@ void bst_replace_node_in_parent(bst_node *node, bst_node *new_node)
         } else {
             node->parent->right = new_node;
         }
+    } else {
+	// this is a root node
+	
     }
     if (new_node) {
         new_node->parent = node->parent;
@@ -88,6 +95,9 @@ void bst_delete_node(bst_node *node, uint32_t key)
     } else if (node->right) {
         bst_replace_node_in_parent(node, node->right);
     } else {
+	#ifdef DEBUG
+	printf("bst_delete_node: bst_replace_node_in_parent(%08X, 0)\n", node);
+	#endif
         bst_replace_node_in_parent(node, 0);
     }
 }

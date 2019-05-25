@@ -1,22 +1,18 @@
-#include "tree_bst.h"
 #include "mem.h"
 #include "kmalloc.h"
 #include "kernel.h"
-#include "dynlist.h"
 #include "kprintf.h"
 
-typedef struct __attribute__((packed)) {
-	bst_node node;
-	dynlist pointerlist;
-	ptr_header f_header;
-	ptr_header a_header;
-} heap_tree_node;
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 
 // the root node of the heap manager binary search tree
+#ifdef IN_KERNEL
 heap_tree_node heap_tree_root;
 
 heap_tree_node *heap_root = &heap_tree_root;
-
+#endif
 
 void prepare_bst_node(heap_tree_node *htn, uint32_t a_size,
 		     uint32_t f_start, uint32_t f_size)
@@ -28,8 +24,9 @@ void prepare_bst_node(heap_tree_node *htn, uint32_t a_size,
 	htn->f_header.ptr = (void *)f_start;
 	htn->f_header.ptr_end = (void *)(f_start + f_size);
 
+	if (a_size == 0) a_size += sizeof(heap_tree_node);
 	htn->a_header.ptr = (void *)((uint32_t)htn + sizeof(heap_tree_node));
-	htn->a_header.ptr_end = (void *)((uint32_t) htn + a_size);
+	htn->a_header.ptr_end = (void *)((uint32_t)htn + a_size);
 
 	htn->node.key = f_size;
 	htn->node.parent = 0;
@@ -78,11 +75,9 @@ void kfree(void *ptr)
 
 	bst_node *node = &(htn->node);
 
-	// create a new bst node describing the freed memory
-	// by overwriting the existing bst node describing the allocated
-	// chunk, deleting it from the tree and re-adding it to keep the
-	// structure
-	
+	#ifdef DEBUG
+	printf("kfree: %d, node = %08X\n", __LINE__, node);
+	#endif	
 	uint32_t a_ptr = (uint32_t)htn->a_header.ptr;
 	uint32_t a_ptr_end = (uint32_t)htn->a_header.ptr_end;
 	uint32_t f_ptr = (uint32_t)htn->f_header.ptr;
@@ -108,7 +103,11 @@ void kfree(void *ptr)
 	//	3. recreate the BST node with the memory around the next element
 	//	4. add the BST
 	//	5. -> we are free to use this memory chunk :D
-
+	
+	// Delete the node from the BST
+	#ifdef DEBUG
+	printf("DEBUG: line %d: bst_delete_node %X, %u\n", __LINE__, node, node->key);
+	#endif
 	bst_delete_node(node, node->key);
 	(*ptrlist)->next->prev = 0;
 	
@@ -118,9 +117,7 @@ void kfree(void *ptr)
 	next_node->key = node->key;	
 	(*ptrlist)->next = 0;
 
-	// Delete the node from the BST
-	bst_delete_node(node, node->key);
-	
+		
 	// add the adjusted one
 	heap_add_chunk(node->key, next_node);
 	
@@ -128,7 +125,11 @@ void kfree(void *ptr)
 
 kfree_no_linked_ptrs:
 	// Delete the node from the BST
-	bst_delete_node(node, node->key);
+	#ifdef DEBUG
+	printf("kfree_no_linked_ptrs: bst_delete_node %08X, %u\n",
+		(bst_node *)heap_root, node->key);
+	#endif
+	bst_delete_node((bst_node *)heap_root, node->key);
 
 	goto kfree_finish;
 
@@ -215,7 +216,7 @@ malloc_finish:
 	dynlist_del((dynlist **)&(old_node->data));
 	// furthermore, we must set the f_header end pointer to the start
 	// pointer
-	ptr_header *p = ((ptr_header *)((dynlist *)old_node->data)->e);
+	ptr_header *p = &((heap_tree_node *)old_node)->f_header;
 	p->ptr_end = p->ptr;
 	
 	if (!old_node->data) {

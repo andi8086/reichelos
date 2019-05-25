@@ -22,6 +22,7 @@ void dummy(void) {
 	asm volatile("nop");
 }
 
+#ifdef IN_KERNEL
 void mem_init(void)
 {
 	rmemset(gdt, 0, sizeof(gdt));
@@ -51,6 +52,7 @@ void mem_init(void)
 		"mov gs, ax\n":::"memory", "%eax"
 	);
 }
+#endif
 
 void init_descriptor(struct GDT *desc, uint32_t base,
 	uint32_t limit, uint8_t granularity, uint8_t datasize,
