@@ -1,5 +1,9 @@
 #include "dynlist.h"
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 void dynlist_append(dynlist **list, dynlist *new)
 {
 	dynlist *prev;
@@ -27,6 +31,7 @@ void dynlist_prepend(dynlist **list, dynlist *new)
 		new->prev = prev;
 	}
 	new->next = old;
+	old->prev = new;
 	// update the original pointer pointing to the old element
 	*list = new;
 }
@@ -40,7 +45,10 @@ void dynlist_del(dynlist **list)
 	if (next) {
 		next->prev = prev;
 	}
-	(*list) = next;
+	#ifdef DEBUG
+	printf(" dynlist_del: next = %08X\n", next);
+	#endif
+	*list = next;
 }
 
 void dynlist_remove(dynlist **list, void *e)

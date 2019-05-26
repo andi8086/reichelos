@@ -18,6 +18,7 @@ void print_nodes(heap_tree_node *n)
 	printf("Dynlist (%08X): \n", d);
 	while(d) {
 		if (d->e) {
+			printf(" e = %08X\n", d->e);
 			ptr_header *p = ((ptr_header *)d->e)->ptr;
 			ptr_header *p_end = ((ptr_header *)d->e)->ptr_end;
 			uint32_t size = (uint32_t) p_end - (uint32_t) p;
@@ -56,15 +57,33 @@ int main(void)
 
 	dump_tree();
 
-	printf("\n********** kmalloc(131072) ********\n");
-
 	void *ptr = kmalloc(131072);
-
 	dump_tree();
-	printf("\n********** kfree ********\n");
+	void *ptr2 = kmalloc(65536);
+	dump_tree();
+	void *ptr3 = kmalloc(32768);
+	dump_tree();
+	void *ptr4 = kmalloc(32768);
+	dump_tree();
+	
+	kfree(ptr4);
+	dump_tree();
 	kfree(ptr);
-
 	dump_tree();
+	kfree(ptr3);
+	dump_tree();
+
+
+	void *ptr5 = kmalloc(16384);
+	dump_tree();
+
+//	void *ptr6 = kmalloc(524288);
+	
+//	dump_tree();
+
+	kfree(ptr5);
+	kfree(ptr2);
+	dump_tree(); 
 
 	free(p);
 

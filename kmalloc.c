@@ -17,6 +17,10 @@ heap_tree_node *heap_root = &heap_tree_root;
 void prepare_bst_node(heap_tree_node *htn, uint32_t a_size,
 		     uint32_t f_start, uint32_t f_size)
 {
+	#ifdef DEBUG
+	printf("prepare_bst_node: new node at %08X\n", htn);
+	#endif
+
 	htn->pointerlist.next = 0;
 	htn->pointerlist.prev = 0;
 	htn->pointerlist.e = &htn->f_header;
@@ -58,18 +62,38 @@ bst_node **heap_add_chunk(uint32_t f_size, bst_node *newnode)
 		// there is no node, but the pointer points to the place in the
 		// tree where it must be added
 		*f_node = newnode;
+		
+		#ifdef DEBUG
+		printf("   dynlist_add: newnode->data->e->f_header.ptr = %08X\n",
+			((ptr_header *)((dynlist *)(*f_node)->data)->e)->ptr);
+		printf("   dynlist_add: newnode->data->e->f_header.ptr_end = %08X\n",
+			((ptr_header *)((dynlist *)(*f_node)->data)->e)->ptr_end);
+		#endif
+
+
 	} else {
 		// there is already a node with the same key, so add the
 		// ptr_header to its data list
 		dynlist_prepend((dynlist **)&(*f_node)->data, newnode->data);
+
+		#ifdef DEBUG
+		printf("   dynlist_prepend: newnode->data->e->f_header.ptr = %08X\n",
+			((ptr_header *)((dynlist *)(*f_node)->data)->e)->ptr);
+		printf("   dynlist_prepend: newnode->data->e->f_header.ptr_end = %08X\n",
+			((ptr_header *)((dynlist *)(*f_node)->data)->e)->ptr_end);
+		#endif
+
 		// erase the BST field, since we are not the master BST node
-		rmemset(newnode, 0, sizeof(bst_node));
+		//rmemset(newnode, 0, sizeof(bst_node));
 	}
 	return f_node;
 }
 
 void kfree(void *ptr)
 {
+	#ifdef DEBUG
+	printf(" ********** kfree **********\n");
+	#endif
 	heap_tree_node *htn = (heap_tree_node *)((uint32_t )ptr -
 			       sizeof(heap_tree_node));
 
@@ -83,79 +107,51 @@ void kfree(void *ptr)
 	uint32_t f_ptr = (uint32_t)htn->f_header.ptr;
 	uint32_t f_ptr_end = (uint32_t)htn->f_header.ptr_end;
 
-	dynlist **ptrlist = (dynlist **)&node->data;
-	if (!*ptrlist) {
+	dynlist *ptrlist = (dynlist *)node->data;
+	#ifdef DEBUG
+	printf("kfree: dynlist = %08X\n", ptrlist);
+	#endif
+	if (!ptrlist) {
 		KPRINTF("kfree: error, dynlist is NULL\n");
 		return;
 	}
-	// check if this is a master BST node, linking to other nodes with the
-	// same key
-
-	if (!node->key) goto kfree_no_master_BST;
-	
-	// this is a master BST, look if there are more elements in the dynlist
-	// than 1
-	if (!(*ptrlist)->next) goto kfree_no_linked_ptrs;
-
-	// we must swap with a slave chunk:
-	// 	1. delete the node from the BST
-	//	2. remove the prev pointer of the next element in the dynlist
-	//	3. recreate the BST node with the memory around the next element
-	//	4. add the BST
-	//	5. -> we are free to use this memory chunk :D
-	
-	// Delete the node from the BST
 	#ifdef DEBUG
-	printf("DEBUG: line %d: bst_delete_node %X, %u\n", __LINE__, node, node->key);
+	uint32_t of_ptr = (uint32_t)((ptr_header *)ptrlist->e)->ptr;
+	uint32_t of_ptr_end = (uint32_t)((ptr_header *)ptrlist->e)->ptr_end;
+	printf("kfree: f_ptr = %08X\n", of_ptr);
+	uint32_t osize =  of_ptr_end - of_ptr;
+	printf("kfree: f_ptr_end = +%u\n", osize);
 	#endif
-	bst_delete_node(node, node->key);
-	(*ptrlist)->next->prev = 0;
-	
-	bst_node *next_node =
-		(bst_node *)((uint32_t)(*ptrlist)->next - sizeof(bst_node));
-	next_node->data = (*ptrlist)->next;
-	next_node->key = node->key;	
-	(*ptrlist)->next = 0;
 
+	heap_tree_node *new_htn = (heap_tree_node *)ptr;
+	bst_node *new_node = &new_htn->node;
 		
-	// add the adjusted one
-	heap_add_chunk(node->key, next_node);
-	
-	goto kfree_finish;
+	// set f_header to a_header and set a_header to 0
+	new_htn->f_header.ptr = 
+		(void *)((uint32_t) ptr + sizeof(heap_tree_node));
+	new_htn->f_header.ptr_end = htn->a_header.ptr_end;
+	new_htn->a_header.ptr = 0;
+	new_htn->a_header.ptr_end = 0;
+	new_node->key = a_ptr_end - a_ptr - sizeof(heap_tree_node);
 
-kfree_no_linked_ptrs:
-	// Delete the node from the BST
 	#ifdef DEBUG
-	printf("kfree_no_linked_ptrs: bst_delete_node %08X, %u\n",
-		(bst_node *)heap_root, node->key);
+	printf("kfree: new_htn->pointerlist = %08X\n", &new_htn->pointerlist);
 	#endif
-	bst_delete_node((bst_node *)heap_root, node->key);
+	new_htn->pointerlist.e = &new_htn->f_header;
+	new_htn->pointerlist.next = 0;
+	new_htn->pointerlist.prev = 0;
+	new_node->data = (void *)&new_htn->pointerlist;
+	heap_add_chunk(new_node->key, new_node);
 
-	goto kfree_finish;
-
-kfree_no_master_BST:
-
-	// remove from the linked list
-	if (!(*ptrlist)->next) goto kfree_no_linked_ptrs;
-
-	(*ptrlist)->next->prev = (*ptrlist)->prev;
-
-	if ((*ptrlist)->prev) {
-		(*ptrlist)->prev->next = (*ptrlist)->next;
-	}
-
-kfree_finish:
-	// initialize a new bst node in this memory chunk to be a free chunk
-	htn->f_header.ptr = (void *)a_ptr;
-	htn->a_header.ptr = 0;
-	htn->a_header.ptr_end = 0;
-	htn->node.key = f_ptr_end - a_ptr;
-	
-	heap_add_chunk(htn->node.key, &htn->node);	
+	return;
 }
+
 
 void *kmalloc(uint32_t size)
 {
+	#ifdef DEBUG
+	printf(" ********** kmalloc **********\n");
+	#endif
 	// find closest match in bst
 	uint32_t alloc_size = size + sizeof(heap_tree_node);
 
@@ -197,6 +193,10 @@ void *kmalloc(uint32_t size)
 	// prepare a new BST node describing the remaining free memory
 	// together with the allocated part
 
+	#ifdef DEBUG
+	printf("kmalloc: prepare_bst_node(a_ptr = %08X, a_size = %08X, f_ptr = %08X, f_size = %08X)\n",
+		ptr_start, alloc_size, ptr_start+alloc_size, f_size);
+	#endif
 	prepare_bst_node((heap_tree_node *)ptr_start, alloc_size,
 			 ptr_start + alloc_size, f_size);
 
@@ -215,9 +215,10 @@ malloc_finish:
 	// delete the pointer header from the dynlist
 	dynlist_del((dynlist **)&(old_node->data));
 	// furthermore, we must set the f_header end pointer to the start
-	// pointer
-	ptr_header *p = &((heap_tree_node *)old_node)->f_header;
-	p->ptr_end = p->ptr;
+	// pointer, (BUGFIX: use ptr_start instead of old_node,
+	// otherwise, we modify f_header belonging to another chunk) 
+	//ptr_header *p = &((heap_tree_node *)(uint32_t)ptr_start - sizeof(heap_tree_node))->f_header;
+	//p->ptr_end = p->ptr;
 	
 	if (!old_node->data) {
 		// this was the last pointer header in the dynlist, remove the
@@ -230,12 +231,13 @@ malloc_finish:
 				sizeof(bst_node));
 		} else {
 			// we delete a node in the BST
-			bst_delete_node(&heap_root->node, old_node->key);
+			bst_delete_node((bst_node **)&heap_root, old_node->key);
 			old_node->key = 0;
 		}
 	}
 	// the pointer to be returned must point to the beginning of the
 	// allocated chunk
+
 	void *ret_ptr = ((heap_tree_node *)ptr_start)->a_header.ptr;
 	return ret_ptr;
 }
