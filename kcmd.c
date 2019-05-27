@@ -2,6 +2,7 @@
 #include "mem.h"
 #include "vga.h"
 #include "vga_tools.h"
+#include "usleep.h"
 
 #define OS_STRING	"ReichelOS i386, v0.1 - experimental"
 
@@ -87,6 +88,10 @@ int32_t kexec_cmd(int argc, char **argv)
 	} else if (strcmp(argv[0], "clr") == 0) {
 		if (check_argc(argc, 3)) return -1;
 		ATTRIBUTE = (atoi(argv[1]) & 0xF) << 4 | (atoi(argv[2]) & 0xF);
+	} else if (strcmp(argv[0], "sleep") == 0) {
+		if (check_argc(argc, 2)) return -1;
+		uint32_t delaytime = atoi(argv[1]);
+		usleep(delaytime);
 	}
 	else {
 		printf("Unknown command\n");

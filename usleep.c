@@ -7,5 +7,5 @@ void usleep(int32_t us)
 
 	us = us / 100;
 	kerneltimer = 0;	
-	while (kerneltimer < us) asm volatile("hlt");
+	while (kerneltimer < us) asm volatile("nop");
 }
