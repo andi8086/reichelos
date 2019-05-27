@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 extern volatile uint64_t syscounter;
+extern volatile int32_t kerneltimer;
 
 void init_timer(void);
 

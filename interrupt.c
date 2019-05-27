@@ -4,6 +4,8 @@
 #include "timer.h"
 #include "io.h"
 #include "8042.h"
+#include "floppy.h"
+#include <stdbool.h>
 
 #pragma(__align(32))
 struct __attribute__((packed)) IDT idt[48];
@@ -235,6 +237,7 @@ void ISRCODE isr31(struct interrupt_frame* f) // reserved
 void ISRCODE isr32(struct interrupt_frame* f) // IRQ0
 {
 	syscounter++;
+	kerneltimer++;
 	outb(0x20, 0x20);
 }
 
@@ -270,7 +273,7 @@ void ISRCODE isr37(struct interrupt_frame* f) // IRQ5
 
 void ISRCODE isr38(struct interrupt_frame* f) // IRQ6
 {
-	asm volatile("nop");
+	fdd_received_irq = true;
 	outb(0x20, 0x20);
 }
 

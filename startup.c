@@ -80,20 +80,20 @@ void startup(uint32_t magic, uint32_t addr)
         }
 
 	init_8042();
+	asm volatile("sti");
 
 	fdd_init();
 
     heap_init();
-	asm volatile ("sti");
 
 	printf("\n%s\n", OS_VERSION);
 
+	
+	DMA_floppy_init_mem(0x8000, 512);
+	DMA_floppy_read();
 
-	void *p = kmalloc(65536);
-	for (int i = 0; i < 4; i++) {
-		kmalloc(131072);
-	}
-	kfree(p);
+	
+
 
 	kcmdloop();
 }

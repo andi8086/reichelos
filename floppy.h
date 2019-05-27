@@ -3,6 +3,7 @@
 
 #include "cmos.h"
 #include "dma.h"
+#include <stdbool.h>
 
 #define FDD_STATUS_REG_A	0x3F0
 #define FDD_STATUS_REG_B	0x3F1
@@ -29,5 +30,7 @@ typedef struct {
 
 extern fd_parameter_block fd_drives[2];
 void fdd_init(void);
+
+extern volatile bool fdd_received_irq;
 
 #endif // __FLOPPY_H__
