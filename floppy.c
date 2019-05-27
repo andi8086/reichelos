@@ -12,6 +12,7 @@ const char *fdnames[6] = {"None", "360K", "1.2M", "720K", "1.44M", "2.88M"};
 volatile bool fdd_received_irq = false;
 
 #define MSR_RQM		0x80
+#define MSR_CTRL_TO_SYS	0x40
 #define MSR_BUSY	0x10
 
 #define DOR_IRQDMA	0x08
@@ -47,13 +48,19 @@ typedef enum
 
 uint8_t fdd_read_byte(void)
 {
-	while((inb(FDD_MSR) & 0xD0) != 0xD0) asm volatile("nop");
+#define READ_EXP_STATE (MSR_RQM | MSR_CTRL_TO_SYS | MSR_BUSY)
+
+	while((inb(FDD_MSR) & READ_EXP_STATE) != READ_EXP_STATE)
+		asm volatile("nop");
+
 	return inb(FDD_FIFO);
 }
 
 void fdd_write_byte(uint8_t byte)
 {
-	while((inb(0x3F4) & 0xC0) != 0x80) asm volatile("nop");	
+	while((inb(FDD_MSR) & (MSR_RQM | MSR_CTRL_TO_SYS)) != MSR_RQM)
+		asm volatile("nop");	
+
 	outb(FDD_FIFO, byte);
 }
 
@@ -67,7 +74,7 @@ void fdd_reset(void)
 	// Enter, then exit reset mode.
 	outb(FDD_DOR, 0x00);
 
-	outb(FDD_CCR,0x00);	// 500Kbps -- for 1.44M floppy
+	outb(FDD_CCR, 0x00);	// 500Kbps -- for 1.44M floppy
 	fdd_received_irq = false; 	// This will prevent the FDC from being faster than us!
 	
 	outb(FDD_DOR, DOR_IRQDMA | DOR_NORMAL);
@@ -140,38 +147,24 @@ void fdd_seek_track(uint8_t drive, uint8_t head, uint8_t track)
 
 void fdd_seektest(void)
 {
-	printf("FDD: seek track 39\n");
 	fdd_seek_track(0, 0, 39);
-	printf("FDD: seek track 0\n");
 	fdd_seek_track(0, 0, 0);
-	printf("FDD: seek track 79\n");
 	fdd_seek_track(0, 0, 79);
-	printf("FDD: seek track 0\n");
 	fdd_seek_track(0, 0, 0);
-	
-	fdd_disable_drives();
 }
 
 void fdd_recalibrate(uint8_t drive)
 {
-
-	printf("activate drive 0\n");
 	fdd_activate_drive(0);
 
 	for (uint8_t i = 0; i < 8; i++) {
 		fdd_received_irq = false;
-		printf("write byte %d\n", RECALIBRATE);
 		fdd_write_byte(RECALIBRATE);
-		printf("write byte %u\n", drive);
 		fdd_write_byte(drive);
-		printf("wait for irq\n");
 		fdd_wait_for_irq();
-		printf("sense interrupt\n");
 		fdd_sense_interrupt();
-		printf("st0 = %x\n", st0);
 		if (st0 & 0x20) break;
 	}
-	printf("done\n");
 }
 
 
@@ -188,8 +181,9 @@ void fdd_init(void)
 	fdd_reset();
 	printf("FDD: Recalibrating drive 0\n");
 	fdd_recalibrate(0);
-	printf("FDD: Seek test\n");
+	printf("FDD: Seek test drive 0\n");
 	fdd_seektest();
+	fdd_disable_drives();	
 }
 
 
