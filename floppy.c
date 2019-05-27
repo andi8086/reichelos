@@ -128,9 +128,7 @@ void fdd_sense_interrupt(void)
 {
 	fdd_write_byte(SENSE_INTERRUPT);
 	st0 = fdd_read_byte();
-	printf(" ST0 = %x\n", st0);
 	st1 = fdd_read_byte();	
-	printf(" ST1 = %x\n", st1);
 }
 
 void fdd_seek_track(uint8_t drive, uint8_t head, uint8_t track)
