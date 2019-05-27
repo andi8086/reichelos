@@ -233,13 +233,13 @@ void scanf(const char *format, ...)
 		n_max = atoi(buffer);
 		switch(*format++) {
 		case 'c': s = va_arg(arg, char*);
-			while(!(c = getch()) || !CH_PRINTABLE(c));
+			while(!(c = getch()) || !CH_PRINTABLE(c)) asm volatile ("hlt");
 			putchar(c);
 			*s = c;	
 			break;
 		case 's': s = va_arg(arg, char*);
 			do {
-				while(!(c = getch()));
+				while(!(c = getch())) asm volatile ("hlt");
 				switch(c) {
 				case 0x08:
 					if (n == 0) break;
