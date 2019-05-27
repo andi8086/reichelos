@@ -92,6 +92,11 @@ int32_t kexec_cmd(int argc, char **argv)
 		if (check_argc(argc, 2)) return -1;
 		uint32_t delaytime = atoi(argv[1]);
 		usleep(delaytime);
+	} else if (strcmp(argv[0], "echo") == 0) {
+		for (uint8_t i = 1; i < argc; i++) {
+			printf("%s", argv[i]);
+			if (i < argc - 1) printf(" ");
+		}
 	}
 	else {
 		printf("Unknown command\n");
