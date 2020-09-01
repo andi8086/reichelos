@@ -7,7 +7,6 @@
 #define OS_STRING	"ReichelOS i386, v0.1 - experimental"
 
 char buffer[256];
-char command[256];
 int argc;
 char *argv[128]; // maximally 127 arguments expected
 

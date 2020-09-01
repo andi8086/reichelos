@@ -2,7 +2,7 @@
 
 #pragma(__align(32))
 struct GDT gdt[12];
-struct GDT idt[32];
+//struct GDT idt[32];
 
 struct __attribute__((packed)) GDTDESC {
 	uint16_t limit;

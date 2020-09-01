@@ -26,7 +26,7 @@ void dummy2(void) {
 
 const char *ticksymb = "-/|\\";
 
-char buffer[256];
+// char buffer[256];
 char command[256];
 uint32_t cmd_idx;
 
